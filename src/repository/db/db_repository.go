@@ -10,6 +10,7 @@ import (
 
 type DBRepository interface {
 	GetByID(ID string) (*access_token.AccessToken, error)
+	Create(access_token access_token.AccessToken) error
 }
 
 type dbRepository struct {
@@ -20,14 +21,15 @@ func NewDBRepository() DBRepository {
 }
 
 const (
-	queryGetByID = "SELECT access_token, client_id, expires, user_id FROM access_tokens WHERE access_token=?;"
+	queryGetAccessToken    = "SELECT access_token, client_id, expires, user_id FROM access_tokens WHERE access_token=?;"
+	queryCreateAccessToken = "INSERT INTO access_tokens (access_token, client_id, expires, user_id) VALUES (?, ?, ?, ?);"
 )
 
 func (r *dbRepository) GetByID(ID string) (*access_token.AccessToken, error) {
 	var result access_token.AccessToken
 
 	if err := cassandra.GetSession().
-		Query(queryGetByID, ID).
+		Query(queryGetAccessToken, ID).
 		Scan(&result.AccessToken,
 			&result.ClientID,
 			&result.Expires,
@@ -40,4 +42,16 @@ func (r *dbRepository) GetByID(ID string) (*access_token.AccessToken, error) {
 	}
 
 	return &result, nil
+}
+
+func (r *dbRepository) Create(access_token access_token.AccessToken) error {
+	if err := cassandra.GetSession().Query(queryCreateAccessToken,
+		access_token.AccessToken,
+		access_token.ClientID,
+		access_token.Expires,
+		access_token.UserID,
+	).Exec(); err != nil {
+		return err
+	}
+	return nil
 }
