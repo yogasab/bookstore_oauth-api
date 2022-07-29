@@ -11,6 +11,7 @@ import (
 type DBRepository interface {
 	GetByID(ID string) (*access_token.AccessToken, error)
 	Create(access_token access_token.AccessToken) error
+	UpdateAccessToken(access_token access_token.AccessToken) error
 }
 
 type dbRepository struct {
@@ -23,6 +24,7 @@ func NewDBRepository() DBRepository {
 const (
 	queryGetAccessToken    = "SELECT access_token, client_id, expires, user_id FROM access_tokens WHERE access_token=?;"
 	queryCreateAccessToken = "INSERT INTO access_tokens (access_token, client_id, expires, user_id) VALUES (?, ?, ?, ?);"
+	queryUpdateAccessToken = "UPDATE access_tokens SET expires = ? WHERE access_token = ?;"
 )
 
 func (r *dbRepository) GetByID(ID string) (*access_token.AccessToken, error) {
@@ -51,6 +53,13 @@ func (r *dbRepository) Create(access_token access_token.AccessToken) error {
 		access_token.Expires,
 		access_token.UserID,
 	).Exec(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *dbRepository) UpdateAccessToken(access_token access_token.AccessToken) error {
+	if err := cassandra.GetSession().Query(queryUpdateAccessToken, access_token.Expires, access_token.AccessToken).Exec(); err != nil {
 		return err
 	}
 	return nil
