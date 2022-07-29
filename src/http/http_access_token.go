@@ -20,8 +20,19 @@ func NewAccesTokenHandler(service access_token.Service) AccessTokenHandler {
 }
 
 func (h *accessTokenHandler) GetByID(ctx *gin.Context) {
+
+	at := ctx.Param("access_token")
+	access_token, err := h.service.GetAccessTokenByID(at)
+	if err != nil {
+		ctx.JSON(
+			http.StatusInternalServerError,
+			gin.H{"code": http.StatusInternalServerError, "status": "internal server error", "message": err.Error(), "error": err},
+		)
+		return
+	}
+
 	ctx.JSON(
-		http.StatusNotImplemented,
-		gin.H{"code": http.StatusNotImplemented, "status": "not implemented"},
+		http.StatusOK,
+		gin.H{"code": http.StatusOK, "status": "success", "message": "access token fetched successfully", "data": access_token},
 	)
 }
