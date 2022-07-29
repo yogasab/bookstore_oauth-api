@@ -15,7 +15,8 @@ func StartApplication() {
 	applicationHandler := http.NewAccesTokenHandler(access_token.NewService(db.NewDBRepository()))
 
 	apiRouter := router.Group("/api/v1/")
-	apiRouter.GET("oauth/access_token/:access_token", applicationHandler.GetByID)
+	apiRouter.POST("oauth/access-token/", applicationHandler.CreateAccessToken)
+	apiRouter.GET("oauth/access-token/:access_token", applicationHandler.GetByID)
 
-	router.Run(":8000")
+	router.Run(":5000")
 }

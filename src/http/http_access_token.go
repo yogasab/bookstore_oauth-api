@@ -4,11 +4,13 @@ import (
 	"net/http"
 
 	"github.com/bookstore_oauth-api/src/domain/access_token"
+	input "github.com/bookstore_oauth-api/src/domain/access_token"
 	"github.com/gin-gonic/gin"
 )
 
 type AccessTokenHandler interface {
 	GetByID(ctx *gin.Context)
+	CreateAccessToken(ctx *gin.Context)
 }
 
 type accessTokenHandler struct {
@@ -20,7 +22,6 @@ func NewAccesTokenHandler(service access_token.Service) AccessTokenHandler {
 }
 
 func (h *accessTokenHandler) GetByID(ctx *gin.Context) {
-
 	at := ctx.Param("access_token")
 	access_token, err := h.service.GetAccessTokenByID(at)
 	if err != nil {
@@ -34,5 +35,43 @@ func (h *accessTokenHandler) GetByID(ctx *gin.Context) {
 	ctx.JSON(
 		http.StatusOK,
 		gin.H{"code": http.StatusOK, "status": "success", "message": "access token fetched successfully", "data": access_token},
+	)
+}
+
+func (h *accessTokenHandler) CreateAccessToken(ctx *gin.Context) {
+	var input input.CreateAccessTokenInput
+
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(
+			http.StatusUnprocessableEntity,
+			gin.H{"code": http.StatusUnprocessableEntity,
+				"status":  "failed",
+				"message": "failed to process request",
+				"error":   err.Error(),
+			},
+		)
+		return
+	}
+
+	result, err := h.service.CreateAccessToken(input)
+	if err != nil {
+		ctx.JSON(
+			http.StatusInternalServerError,
+			gin.H{"code": http.StatusInternalServerError,
+				"status":  "error",
+				"message": "internal status error",
+				"error":   err,
+			},
+		)
+		return
+	}
+
+	ctx.JSON(
+		http.StatusCreated,
+		gin.H{"code": http.StatusCreated,
+			"status":  "success",
+			"message": "access token created successfully",
+			"error":   result,
+		},
 	)
 }
