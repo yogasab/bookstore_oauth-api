@@ -13,6 +13,18 @@ type AccessToken struct {
 	Expires     int64  `json:"expires"`
 }
 
+type CreateAccessTokenInput struct {
+	AccessToken string `json:"access_token" binding:"required"`
+	UserID      int64  `json:"user_id" binding:"required"`
+	ClientID    int64  `json:"client_id" binding:"required"`
+	Expires     int64  `json:"expires" binding:"required"`
+}
+
+type UpdateAccessTokenInput struct {
+	AccessToken string `json:"access_token" binding:"required"`
+	Expires     int64  `json:"expires" binding:"required"`
+}
+
 func GetNewAccessToken() AccessToken {
 	return AccessToken{
 		Expires: time.Now().Add(expirationTime * time.Hour).Unix(),
