@@ -33,26 +33,28 @@ func TestUserLoginFromAPI(t *testing.T) {
 	assert.NotNil(t, user)
 }
 
+// Disable server to running this test
 func TestUserLoginTimeoutFromAPI(t *testing.T) {
 	input := user.UserLoginInput{
 		Email:    "the-email@email.com",
 		Password: "the-password",
 	}
 
-	response, errResponse := client.R().
+	response, _ := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(map[string]interface{}{"email": "the-email@email.com", "password": "the-password"}).
+		SetBody(map[string]interface{}{"email": input.Email, "password": input.Password}).
 		Post("http://localhost:5001/api/v1/users/login")
 
 	repository := NewRestUserRepository()
 
 	data, errData := repository.LoginUser(input)
 
-	assert.Nil(t, errResponse)
 	assert.Nil(t, data)
-	assert.NotNil(t, response)
 	assert.NotNil(t, errData)
+	assert.NotNil(t, response)
 	assert.EqualValues(t, http.StatusInternalServerError, errData.Code)
-	assert.EqualValues(t, "User is not registered, please register first", errData.Message)
+	assert.EqualValues(t, "invalid restclient response when trying to login user", errData.Message)
 	assert.EqualValues(t, "failed", errData.Error)
 }
+
+// func Test
