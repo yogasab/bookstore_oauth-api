@@ -1,4 +1,4 @@
-package repository
+package rest
 
 import (
 	"net/http"

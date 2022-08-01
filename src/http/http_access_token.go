@@ -3,8 +3,8 @@ package http
 import (
 	"net/http"
 
-	"github.com/bookstore_oauth-api/src/domain/access_token"
-	input "github.com/bookstore_oauth-api/src/domain/access_token"
+	at "github.com/bookstore_oauth-api/src/domain/access_token"
+	"github.com/bookstore_oauth-api/src/services/access_token"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,7 +39,7 @@ func (h *accessTokenHandler) GetByID(ctx *gin.Context) {
 }
 
 func (h *accessTokenHandler) CreateAccessToken(ctx *gin.Context) {
-	var input input.CreateAccessTokenInput
+	var input at.AccessTokenInput
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		ctx.JSON(

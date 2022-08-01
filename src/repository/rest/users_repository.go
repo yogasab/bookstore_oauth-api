@@ -1,4 +1,4 @@
-package repository
+package rest
 
 import (
 	"encoding/json"
@@ -12,8 +12,7 @@ type RestUserRepository interface {
 	LoginUser(input user.UserLoginInput) (*user.Response, *user.ResponseError)
 }
 
-type restUserRepository struct {
-}
+type restUserRepository struct{}
 
 var (
 	usersRestClient = resty.New()
@@ -34,7 +33,6 @@ func (r *restUserRepository) LoginUser(input user.UserLoginInput) (*user.Respons
 	response, _ := usersRestClient.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(map[string]interface{}{"email": input.Email, "password": input.Password}).
-		SetResult(``).
 		Post("http://localhost:5001/api/v1/users/login")
 
 	if response == nil || response.RawResponse == nil {
