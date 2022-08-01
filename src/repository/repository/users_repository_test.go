@@ -26,17 +26,33 @@ func TestUserLoginFromAPI(t *testing.T) {
 
 	user, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(`{"email":"ajax@amsterdam.com", "password":"password"}`).
+		SetBody(map[string]interface{}{"email": input.Email, "password": input.Password}).
+		Post("http://localhost:5001/api/v1/users/login")
+
+	assert.Nil(t, err)
+	assert.NotNil(t, user)
+}
+
+func TestUserLoginTimeoutFromAPI(t *testing.T) {
+	input := user.UserLoginInput{
+		Email:    "the-email@email.com",
+		Password: "the-password",
+	}
+
+	response, errResponse := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(map[string]interface{}{"email": "the-email@email.com", "password": "the-password"}).
 		Post("http://localhost:5001/api/v1/users/login")
 
 	repository := NewRestUserRepository()
 
-	data, errRepo := repository.LoginUser(input)
-	assert.Nil(t, err)
-	assert.Nil(t, errRepo)
-	assert.NotNil(t, user)
-	assert.NotNil(t, data)
-	assert.EqualValues(t, http.StatusOK, data.Meta.Code)
-	assert.EqualValues(t, "Users logged in successfully", data.Meta.Message)
-	assert.EqualValues(t, "success", data.Meta.Status)
+	data, errData := repository.LoginUser(input)
+
+	assert.Nil(t, errResponse)
+	assert.Nil(t, data)
+	assert.NotNil(t, response)
+	assert.NotNil(t, errData)
+	assert.EqualValues(t, http.StatusInternalServerError, errData.Code)
+	assert.EqualValues(t, "User is not registered, please register first", errData.Message)
+	assert.EqualValues(t, "failed", errData.Error)
 }
