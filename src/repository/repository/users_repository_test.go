@@ -57,4 +57,26 @@ func TestUserLoginTimeoutFromAPI(t *testing.T) {
 	assert.EqualValues(t, "failed", errData.Error)
 }
 
-// func Test
+func TestUserInvalidErrorInterface(t *testing.T) {
+	input := user.UserLoginInput{
+		Email:    "the-email@email.com",
+		Password: "the-password",
+	}
+
+	response, errResponse := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(map[string]interface{}{"email": input.Email, "password": input.Password}).
+		SetResult(`{}`).
+		Post("http://localhost:5001/api/v1/users/login")
+
+	repository := NewRestUserRepository()
+	data, errData := repository.LoginUser(input)
+
+	assert.Nil(t, data)
+	assert.Nil(t, errResponse)
+	assert.NotNil(t, errData)
+	assert.NotNil(t, response)
+	assert.EqualValues(t, http.StatusInternalServerError, errData.Code)
+	assert.EqualValues(t, "failed", errData.Error)
+	assert.EqualValues(t, "invalid error interface when trying to login user", errData.Message)
+}

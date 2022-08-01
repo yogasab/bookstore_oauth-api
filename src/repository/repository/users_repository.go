@@ -18,6 +18,11 @@ type restUserRepository struct {
 
 var (
 	usersRestClient = resty.New()
+	resultError     = user.ResponseError{
+		Code:    http.StatusNotFound,
+		Error:   "failed",
+		Message: "User not found",
+	}
 )
 
 func NewRestUserRepository() RestUserRepository {
@@ -30,6 +35,7 @@ func (r *restUserRepository) LoginUser(input user.UserLoginInput) (*user.Respons
 	response, _ := usersRestClient.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(map[string]interface{}{"email": input.Email, "password": input.Password}).
+		SetResult(`{}`).
 		Post("http://localhost:5001/api/v1/users/login")
 
 	if response == nil || response.RawResponse == nil {
@@ -38,8 +44,8 @@ func (r *restUserRepository) LoginUser(input user.UserLoginInput) (*user.Respons
 
 	if response.StatusCode() > 299 {
 		var errResp user.ResponseError
-		if err := json.Unmarshal(response.Body(), &errResp); err != nil {
-			// return nil, errors.New("invalid error interface when trying to login user")
+		err := json.Unmarshal(response.Body(), &resultError)
+		if response.StatusCode() != errResp.Code || err != nil {
 			return nil, user.FormatError(http.StatusInternalServerError, "failed", "invalid error interface when trying to login user")
 		}
 		return nil, &errResp
