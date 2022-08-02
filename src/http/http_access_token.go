@@ -60,7 +60,7 @@ func (h *accessTokenHandler) CreateAccessToken(ctx *gin.Context) {
 			gin.H{"code": http.StatusInternalServerError,
 				"status":  "error",
 				"message": "internal status error",
-				"error":   err,
+				"error":   err.Error(),
 			},
 		)
 		return
@@ -71,7 +71,7 @@ func (h *accessTokenHandler) CreateAccessToken(ctx *gin.Context) {
 		gin.H{"code": http.StatusCreated,
 			"status":  "success",
 			"message": "access token created successfully",
-			"error":   result,
+			"data":    result,
 		},
 	)
 }

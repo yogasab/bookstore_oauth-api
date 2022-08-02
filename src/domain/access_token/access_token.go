@@ -77,7 +77,7 @@ func (at *AccessToken) Validate() error {
 	return nil
 }
 
-func (at *AccessTokenInput) Validate() error {
+func (at *AccessTokenInput) ValidateInput() error {
 	switch at.GrantType {
 	case grantTypePassword:
 		break

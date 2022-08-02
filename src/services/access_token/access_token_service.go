@@ -2,7 +2,6 @@ package access_token
 
 import (
 	"errors"
-	"log"
 	"strings"
 
 	"github.com/bookstore_oauth-api/src/domain/access_token"
@@ -42,32 +41,29 @@ func (s *service) GetAccessTokenByID(accessTokenID string) (*access_token.Access
 }
 
 func (s *service) CreateAccessToken(input access_token.AccessTokenInput) (*access_token.AccessToken, error) {
-	if err := input.Validate(); err != nil {
+	if err := input.ValidateInput(); err != nil {
 		return nil, err
 	}
 
 	inputLogin := user.UserLoginInput{}
 	inputLogin.Email = input.Email
 	inputLogin.Password = input.Password
+
 	data, _ := s.userRestRepository.LoginUser(inputLogin)
 	user := data.Data.(map[string]interface{})["user"].(map[string]interface{})
+	userID := float64(user["id"].(float64))
+	UserID := int64(userID)
 
 	at := access_token.AccessToken{}
 
-	if err := at.Validate(); err != nil {
-		log.Println(err)
-		return nil, err
-	}
-
-	newAccessToken := at.GetNewAccessToken(user["id"].(int64))
+	newAccessToken := at.GetNewAccessToken(UserID)
 	newAccessToken.Generate()
 
-	if err := s.repository.Create(at); err != nil {
-		log.Println(err)
+	if err := s.repository.Create(newAccessToken); err != nil {
 		return nil, err
 	}
 
-	return &at, nil
+	return &newAccessToken, nil
 }
 
 func (s *service) UpdatExpiredAccessToken(accessToken access_token.UpdateAccessTokenInput) (*access_token.AccessToken, error) {
