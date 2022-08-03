@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"log"
 
 	"github.com/bookstore_oauth-api/src/clients/cassandra"
 	"github.com/bookstore_oauth-api/src/domain/access_token"
@@ -22,6 +23,7 @@ func NewDBRepository() DBRepository {
 }
 
 const (
+	// queryGetAccessToken = "SELECT access_token, client_id, expires, user_id FROM access_tokens;"
 	queryGetAccessToken    = "SELECT access_token, client_id, expires, user_id FROM access_tokens WHERE access_token=?;"
 	queryCreateAccessToken = "INSERT INTO access_tokens (access_token, client_id, expires, user_id) VALUES (?, ?, ?, ?);"
 	queryUpdateAccessToken = "UPDATE access_tokens SET expires = ? WHERE access_token = ?;"
@@ -32,6 +34,7 @@ func (r *dbRepository) GetByID(ID string) (*access_token.AccessToken, error) {
 
 	if err := cassandra.GetSession().
 		Query(queryGetAccessToken, ID).
+		Consistency(gocql.One).
 		Scan(&result.AccessToken,
 			&result.ClientID,
 			&result.Expires,
@@ -40,6 +43,7 @@ func (r *dbRepository) GetByID(ID string) (*access_token.AccessToken, error) {
 		if err == gocql.ErrNotFound {
 			return &result, errors.New("no access token found with correspond ID")
 		}
+		log.Println(err.Error())
 		return &result, errors.New("error when trying to get current id")
 	}
 
