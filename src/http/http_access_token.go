@@ -1,7 +1,6 @@
 package http
 
 import (
-	"log"
 	"net/http"
 
 	at "github.com/bookstore_oauth-api/src/domain/access_token"
@@ -25,11 +24,14 @@ func NewAccesTokenHandler(service access_token.Service) AccessTokenHandler {
 func (h *accessTokenHandler) GetByID(ctx *gin.Context) {
 	at := ctx.Param("access_token")
 	access_token, err := h.service.GetAccessTokenByID(at)
-	log.Println(err)
 	if err != nil {
+		statusCode := http.StatusInternalServerError
+		if err.Error() == "no access token found with correspond ID" {
+			statusCode = http.StatusNotFound
+		}
 		ctx.JSON(
-			http.StatusInternalServerError,
-			gin.H{"code": http.StatusInternalServerError, "status": "internal server error", "message": err.Error(), "error": err},
+			statusCode,
+			gin.H{"code": statusCode, "status": "internal server error", "message": err.Error(), "error": err},
 		)
 		return
 	}
@@ -57,9 +59,22 @@ func (h *accessTokenHandler) CreateAccessToken(ctx *gin.Context) {
 
 	result, err := h.service.CreateAccessToken(input)
 	if err != nil {
+		statusCode := http.StatusInternalServerError
+		if err.Error() == "User is not registered, please register first" {
+			statusCode := http.StatusNotFound
+			ctx.JSON(
+				statusCode,
+				gin.H{"code": statusCode,
+					"status":  "error",
+					"message": "user is not found",
+					"error":   err.Error(),
+				},
+			)
+			return
+		}
 		ctx.JSON(
-			http.StatusInternalServerError,
-			gin.H{"code": http.StatusInternalServerError,
+			statusCode,
+			gin.H{"code": statusCode,
 				"status":  "error",
 				"message": "internal status error",
 				"error":   err.Error(),

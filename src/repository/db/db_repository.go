@@ -23,7 +23,6 @@ func NewDBRepository() DBRepository {
 }
 
 const (
-	// queryGetAccessToken = "SELECT access_token, client_id, expires, user_id FROM access_tokens;"
 	queryGetAccessToken    = "SELECT access_token, client_id, expires, user_id FROM access_tokens WHERE access_token=?;"
 	queryCreateAccessToken = "INSERT INTO access_tokens (access_token, client_id, expires, user_id) VALUES (?, ?, ?, ?);"
 	queryUpdateAccessToken = "UPDATE access_tokens SET expires = ? WHERE access_token = ?;"
@@ -43,7 +42,6 @@ func (r *dbRepository) GetByID(ID string) (*access_token.AccessToken, error) {
 		if err == gocql.ErrNotFound {
 			return &result, errors.New("no access token found with correspond ID")
 		}
-		log.Println(err.Error())
 		return &result, errors.New("error when trying to get current id")
 	}
 
@@ -57,6 +55,7 @@ func (r *dbRepository) Create(access_token access_token.AccessToken) error {
 		access_token.Expires,
 		access_token.UserID,
 	).Exec(); err != nil {
+		log.Println(err)
 		return err
 	}
 	return nil

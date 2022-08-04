@@ -49,7 +49,10 @@ func (s *service) CreateAccessToken(input access_token.AccessTokenInput) (*acces
 	inputLogin.Email = input.Email
 	inputLogin.Password = input.Password
 
-	data, _ := s.userRestRepository.LoginUser(inputLogin)
+	data, err := s.userRestRepository.LoginUser(inputLogin)
+	if err != nil {
+		return nil, errors.New("User is not registered, please register first")
+	}
 	user := data.Data.(map[string]interface{})["user"].(map[string]interface{})
 	userID := float64(user["id"].(float64))
 	UserID := int64(userID)
